@@ -28,7 +28,7 @@ class Genre(Base):
     __tablename__ = 'genres'
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    name = Mapped[str] = mapped_column(String(128), nullable=False)
+    name : Mapped[str] = mapped_column(String(128), nullable=False)
 
 
 class Book(Base):
