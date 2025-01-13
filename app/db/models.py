@@ -36,10 +36,10 @@ class Book(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[str] = mapped_column(Text)
-    publication_date: Mapped[Date] = mapped_column(Date)
-    genres: Mapped[list[Genre]] = relationship(secondary=books_genres)
-    available_copies: Mapped[int] = mapped_column(Integer, default=0)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    publication_date: Mapped[Date] = mapped_column(Date, nullable=True)
+    genres: Mapped[list[Genre]] = relationship(secondary=books_genres, unique=True)
+    available_copies: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
 
     loans: Mapped[list['BookLoan']] = relationship( back_populates='book')
 
@@ -61,7 +61,7 @@ class Author(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    biography: Mapped[str] = mapped_column(Text)
+    biography: Mapped[str] = mapped_column(Text, nullable=True)
     birth_date: Mapped[Date] = mapped_column(Date)
 
     books: Mapped[list[Book]] = relationship(secondary=books_authors)
