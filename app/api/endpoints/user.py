@@ -21,9 +21,11 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @auth_router.post('/login')
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+    try:
+        db_user = db.query(models.User).filter(models.User.username == user.username).first()
+        if not verify_password(user.password, db_user.hashed_password):
+            raise HTTPException(status_code=401, detail='Invalid username or password')
+    except Exception:
         raise HTTPException(status_code=401, detail='Invalid username or password')
-
-    access_token = create_access_token(data={'sub': db_user.username})
+    access_token = create_access_token(data={'sub': db_user.username, 'role': db_user.role.value})
     return {'access_token': access_token, 'token_type': 'bearer'}
