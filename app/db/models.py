@@ -28,7 +28,7 @@ class Genre(Base):
     __tablename__ = 'genres'
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    name : Mapped[str] = mapped_column(String(128), nullable=False)
+    name : Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
 
 
 class Book(Base):
@@ -38,7 +38,7 @@ class Book(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     publication_date: Mapped[Date] = mapped_column(Date, nullable=True)
-    genres: Mapped[list[Genre]] = relationship(secondary=books_genres, unique=True)
+    genres: Mapped[list[Genre]] = relationship(secondary=books_genres)
     available_copies: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
 
     loans: Mapped[list['BookLoan']] = relationship( back_populates='book')
