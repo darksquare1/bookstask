@@ -5,7 +5,11 @@ from utils.security import create_access_token
 
 client = TestClient(app)
 
+
 def test_get_books_as_reader(db):
+    """
+    Функция, тестирующая маршрут получения книг в роли читателя.
+    """
     genre = models.Genre(name='Fiction')
     author = models.Author(name='Author One', biography='Bio', birth_date='1990-01-01')
     book = models.Book(
@@ -28,7 +32,11 @@ def test_get_books_as_reader(db):
     assert len(books) == 1
     assert books[0]['title'] == 'Test Book'
 
+
 def test_create_book_as_admin(db):
+    """
+    Функция, тестирующая маршрут создания книги в роли админа.
+    """
     author = models.Author(name='Author Two', biography='Bio', birth_date='1985-01-01')
     db.add(author)
     db.commit()
@@ -50,7 +58,11 @@ def test_create_book_as_admin(db):
     assert book['genres'] == ['Fiction']
     assert book['authors'] == ['Author Two']
 
+
 def test_create_book_as_reader_forbidden(db):
+    """
+    Функция тестирующая маршрут создания книги в роли читателя (запрет на создание).
+    """
     book_data = {
         'title': 'New Book',
         'description': 'A new book description',
@@ -65,7 +77,11 @@ def test_create_book_as_reader_forbidden(db):
     assert response.status_code == 401
     assert response.json()['detail'] == 'Access denied. Required roles: admin'
 
+
 def test_delete_book_as_admin(db):
+    """
+    Функция тестирующая маршрут удаления книги в роли админа.
+    """
     genre = models.Genre(name='Horror')
     author = models.Author(name='Author Four', biography='Bio', birth_date='1975-01-01')
     book = models.Book(

@@ -1,38 +1,13 @@
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.db.database import Base, get_db
 from main import app
-from app.core.config import settings
-
-SQLALCHEMY_DATABASE_URL = settings.TEST_DATABASE_URL
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-@pytest.fixture(scope='function')
-def db():
-    Base.metadata.create_all(bind=engine)
-    db_session = TestingSessionLocal()
-    try:
-        yield db_session
-    finally:
-        db_session.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-def override_get_db():
-    with TestingSessionLocal() as db:
-        yield db
-
-
-
 
 client = TestClient(app)
 
 
 def test_register_and_login(db):
+    """
+    Функция, которая тестирует регистрацию и авторизацию пользователя по jwt
+    """
     user_data = {
         'username': 'testuser',
         'email': 'testuser@example.com',

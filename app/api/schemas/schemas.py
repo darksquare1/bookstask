@@ -39,3 +39,9 @@ class BookUpdate(BaseModel):
     publication_date: Optional[date] = None
     available_copies: Optional[int] = None
     genres: Optional[list[str]] = None
+
+class GenrePost(BaseModel):
+    name: str
+
+class GenreGet(GenrePost):
+    id: int
