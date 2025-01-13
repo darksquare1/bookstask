@@ -1,10 +1,10 @@
 import datetime
 import jwt
-from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
-
+from typing import List
+from fastapi import Depends, HTTPException
+from starlette import status
 from app.core.config import settings
-
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -46,3 +46,18 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     payload = verify_token(token)
     username = payload.get('sub')
     return username
+
+
+class RoleVerify:
+    def __init__(self, roles: List[str]):
+        self.roles = roles
+
+    def __call__(self, token: str = Depends(oauth2_scheme)):
+        payload = verify_token(token)
+        role = payload.get('role')
+        if role not in self.roles:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Access denied. Required roles: {', '.join(self.roles)}"
+            )
+        return payload
