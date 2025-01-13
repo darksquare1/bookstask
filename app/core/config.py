@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,7 +26,8 @@ class Settings(BaseSettings):
     def TEST_DATABASE_URL(self):
         return f'postgresql://{self.DB_TEST_USER}:{self.DB_TEST_PASS}@{self.DB_TEST_HOST}:{self.DB_TEST_PORT}/{self.DB_TEST_NAME}'
 
-    model_config = SettingsConfigDict(env_file='.env')
+    model_config = SettingsConfigDict(
+        env_file=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '.env')))
 
 
 settings = Settings()
