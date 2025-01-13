@@ -42,7 +42,7 @@ class Book(Base):
     available_copies: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
 
     loans: Mapped[list['BookLoan']] = relationship( back_populates='book')
-
+    authors: Mapped[list['Author']] = relationship(secondary=books_authors, back_populates='books')
 
 class User(Base):
     __tablename__ = 'users'
@@ -64,7 +64,7 @@ class Author(Base):
     biography: Mapped[str] = mapped_column(Text, nullable=True)
     birth_date: Mapped[Date] = mapped_column(Date)
 
-    books: Mapped[list[Book]] = relationship(secondary=books_authors)
+    books: Mapped[list[Book]] = relationship(secondary=books_authors, back_populates='authors')
 
 
 class BookLoan(Base):
