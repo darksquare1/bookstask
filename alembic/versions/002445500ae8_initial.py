@@ -96,4 +96,5 @@ def downgrade() -> None:
     op.drop_table('books')
     op.drop_index(op.f('ix_authors_id'), table_name='authors')
     op.drop_table('authors')
+    op.execute('DROP TYPE IF EXISTS "role"')
     # ### end Alembic commands ###
