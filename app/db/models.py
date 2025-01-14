@@ -28,7 +28,7 @@ class Genre(Base):
     __tablename__ = 'genres'
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    name : Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
 
 
 class Book(Base):
@@ -41,8 +41,9 @@ class Book(Base):
     genres: Mapped[list[Genre]] = relationship(secondary=books_genres)
     available_copies: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
 
-    loans: Mapped[list['BookLoan']] = relationship( back_populates='book')
+    loans: Mapped[list['BookLoan']] = relationship(back_populates='book')
     authors: Mapped[list['Author']] = relationship(secondary=books_authors, back_populates='books')
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -51,7 +52,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[Role] = mapped_column(AlchEnum(Role), default=Role.READER)
+    role: Mapped[Role] = mapped_column(AlchEnum(Role), default=Role.READER, nullable=False)
 
     borrowed_books: Mapped[list['BookLoan']] = relationship(back_populates='user')
 
@@ -62,7 +63,7 @@ class Author(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     biography: Mapped[str] = mapped_column(Text, nullable=True)
-    birth_date: Mapped[Date] = mapped_column(Date)
+    birth_date: Mapped[Date] = mapped_column(Date, nullable=True)
 
     books: Mapped[list[Book]] = relationship(secondary=books_authors, back_populates='authors')
 
@@ -71,10 +72,10 @@ class BookLoan(Base):
     __tablename__ = 'book_loans'
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    book_id: Mapped[int] = mapped_column(ForeignKey('books.id'))
-    issue_date: Mapped[Date] = mapped_column(Date)
-    return_date: Mapped[Date] = mapped_column(Date, nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    book_id: Mapped[int] = mapped_column(ForeignKey('books.id'), nullable=False)
+    issue_date: Mapped[Date] = mapped_column(Date, nullable=False)
+    return_date: Mapped[Date] = mapped_column(Date, nullable=False)
 
     user: Mapped['User'] = relationship(back_populates='borrowed_books')
     book: Mapped['Book'] = relationship(back_populates='loans')
