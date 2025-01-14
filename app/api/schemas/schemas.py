@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
-
-from pydantic import BaseModel, EmailStr, ConfigDict
+from fastapi import HTTPException, status
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class UserCreate(BaseModel):
@@ -21,6 +21,14 @@ class BookBase(BaseModel):
     publication_date: Optional[date] = None
     available_copies: int
 
+    @field_validator('available_copies', mode='before')
+    @classmethod
+    def validate_available_copies(cls, value: int) -> int:
+        if value < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail='Field available copies must be a non negative integer')
+        return value
+
 
 class BookCreate(BookBase):
     genres: list[str]
@@ -39,9 +47,12 @@ class BookUpdate(BaseModel):
     publication_date: Optional[date] = None
     available_copies: Optional[int] = None
     genres: Optional[list[str]] = None
+    authors: Optional[list[str]] = None
+
 
 class GenrePost(BaseModel):
     name: str
+
 
 class GenreGet(GenrePost):
     id: int
