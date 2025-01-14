@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from starlette.responses import JSONResponse
-
+from fastapi.responses import JSONResponse
 from app.crud.user import create_user
 from app.api import schemas
 from app.db import models
