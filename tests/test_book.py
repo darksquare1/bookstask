@@ -29,8 +29,8 @@ def test_get_books_as_reader(db):
     response = client.get('/books', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     books = response.json()
-    assert len(books) == 1
-    assert books[0]['title'] == 'Test Book'
+    assert len(books['items']) == 1
+    assert books['items'][0]['title'] == 'Test Book'
 
 
 def test_create_book_as_admin(db):

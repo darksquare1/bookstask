@@ -65,3 +65,13 @@ class BookLoanOut(BaseModel):
     issue_date: date
     estimated_return_date: date
     actual_return_date: Optional[date]
+
+
+class AuthorPost(BaseModel):
+    name: str
+    biography: Optional[str] = None
+    birth_date: Optional[date] = None
+
+
+class AuthorGet(AuthorPost):
+    id: int

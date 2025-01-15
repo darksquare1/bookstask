@@ -10,7 +10,7 @@ books_router = APIRouter()
 
 
 @books_router.get('', response_model=Page[schemas.BookOut])
-def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db), size: int = 10):
+def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
     books = db.query(models.Book).all()
     if not books:
         raise HTTPException(status_code=404, detail='Books not found')
