@@ -47,7 +47,6 @@ def create_book(book: schemas.BookCreate, depends_on=Depends(RoleVerify(['admin'
     )
     db.add(new_book)
     db.commit()
-    db.refresh(new_book)
     return schemas.BookOut(
         id=new_book.id,
         title=new_book.title,
@@ -83,7 +82,6 @@ def update_book(book_id: int, book: schemas.BookUpdate, depends_on=Depends(RoleV
         existing_book.authors = authors
 
     db.commit()
-    db.refresh(existing_book)
     return schemas.BookOut(
         id=existing_book.id,
         title=existing_book.title,

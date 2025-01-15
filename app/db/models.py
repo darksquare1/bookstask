@@ -75,7 +75,8 @@ class BookLoan(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
     book_id: Mapped[int] = mapped_column(ForeignKey('books.id'), nullable=False)
     issue_date: Mapped[Date] = mapped_column(Date, nullable=False)
-    return_date: Mapped[Date] = mapped_column(Date, nullable=False)
+    estimated_return_date: Mapped[Date] = mapped_column(Date, nullable=False)
+    actual_return_date: Mapped[Date] = mapped_column(Date, nullable=True)
 
     user: Mapped['User'] = relationship(back_populates='borrowed_books')
     book: Mapped['Book'] = relationship(back_populates='loans')
