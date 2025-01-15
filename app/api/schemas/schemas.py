@@ -56,3 +56,12 @@ class GenrePost(BaseModel):
 
 class GenreGet(GenrePost):
     id: int
+
+
+class BookLoanOut(BaseModel):
+    loan_id: int
+    user_id: int
+    book_id: int
+    issue_date: date
+    estimated_return_date: date
+    actual_return_date: Optional[date]
