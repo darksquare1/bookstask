@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Page, paginate
 from sqlalchemy.orm import Session
 from app.api import schemas
 from app.db import models
@@ -8,13 +9,13 @@ from utils.security import RoleVerify
 books_router = APIRouter()
 
 
-@books_router.get('', response_model=list[schemas.BookOut])
-def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
+@books_router.get('', response_model=Page[schemas.BookOut])
+def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db), size: int = 10):
     books = db.query(models.Book).all()
     if not books:
         raise HTTPException(status_code=404, detail='Books not found')
 
-    return [
+    return paginate([
         schemas.BookOut(
             id=book.id,
             title=book.title,
@@ -25,7 +26,7 @@ def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session =
             authors=[author.name for author in book.authors]
         )
         for book in books
-    ]
+    ])
 
 
 @books_router.post('', response_model=schemas.BookOut)
