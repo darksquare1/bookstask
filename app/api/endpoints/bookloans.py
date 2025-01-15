@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from app.db.database import get_db
 from app.db import models
 from app.api import schemas
+from logging_config import logger
 from utils.security import RoleVerify
 
 loan_router = APIRouter()
@@ -12,7 +13,8 @@ loan_router = APIRouter()
 @loan_router.post('/borrow/{book_id}', response_model=schemas.BookLoanOut)
 def borrow_book(book_id: int, db: Session = Depends(get_db),
                 current_user: dict = Depends(RoleVerify(['reader', 'admin']))):
-    user_id = db.query(models.User).filter(models.User.username == current_user.get('sub')).first().id
+    username = current_user.get('sub')
+    user_id = db.query(models.User).filter(models.User.username == username).first().id
     user_loans = db.query(models.BookLoan).filter(models.BookLoan.user_id == user_id).all()
     if len(user_loans) >= 5:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -39,7 +41,7 @@ def borrow_book(book_id: int, db: Session = Depends(get_db),
 
     book.available_copies -= 1
     db.commit()
-
+    logger.info(f"User {username} borrowed book '{book.title}' (ID: {book.id})")
     return schemas.BookLoanOut(
         loan_id=new_loan.id,
         user_id=user_id,
@@ -53,7 +55,8 @@ def borrow_book(book_id: int, db: Session = Depends(get_db),
 @loan_router.post('/return/{loan_id}', response_model=schemas.BookLoanOut)
 def return_book(loan_id: int, db: Session = Depends(get_db),
                 current_user: dict = Depends(RoleVerify(['reader', 'admin']))):
-    user_id = db.query(models.User).filter(models.User.username == current_user.get('sub')).first().id
+    username = current_user.get('sub')
+    user_id = db.query(models.User).filter(models.User.username == username).first().id
     loan = db.query(models.BookLoan).filter(models.BookLoan.id == loan_id, models.BookLoan.user_id == user_id).first()
 
     if not loan:
@@ -70,7 +73,7 @@ def return_book(loan_id: int, db: Session = Depends(get_db),
 
     book.available_copies += 1
     db.commit()
-
+    logger.info(f"User {username} returned book '{book.title}' (ID: {book.id})")
     return schemas.BookLoanOut(
         loan_id=loan.id,
         user_id=loan.user_id,
