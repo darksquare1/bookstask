@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from app.db import models
 from main import app
+from tests.utils import create_test_user
 from utils.security import create_access_token
 
 client = TestClient(app)
@@ -24,8 +25,8 @@ def test_get_books_as_reader(db):
     db.add(author)
     db.add(book)
     db.commit()
-
-    token = create_access_token(data={'sub': 'testuser', 'role': 'reader'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'reader'})
     response = client.get('/books', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     books = response.json()
@@ -49,8 +50,8 @@ def test_create_book_as_admin(db):
         'genres': ['Fiction'],
         'authors': ['Author Two'],
     }
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.post('/books', json=book_data, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     book = response.json()
@@ -71,8 +72,8 @@ def test_create_book_as_reader_forbidden(db):
         'genres': ['Fiction'],
         'authors': ['Author Two'],
     }
-
-    token = create_access_token(data={'sub': 'testuser', 'role': 'reader'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'reader'})
     response = client.post('/books', json=book_data, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 401
     assert response.json()['detail'] == 'Access denied. Required roles: admin'
@@ -96,8 +97,8 @@ def test_delete_book_as_admin(db):
     db.add(author)
     db.add(book)
     db.commit()
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.delete(f'/books/{book.id}', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     deleted_book = response.json()

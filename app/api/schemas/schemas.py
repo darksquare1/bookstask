@@ -15,6 +15,10 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    email: EmailStr
+
+
 class BookBase(BaseModel):
     title: str
     description: Optional[str] = None

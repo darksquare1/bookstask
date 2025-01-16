@@ -1,23 +1,11 @@
-import uuid
 from datetime import date, timedelta
 from fastapi.testclient import TestClient
 from app.db import models
 from main import app
+from tests.utils import create_test_user
 from utils.security import create_access_token
 
 client = TestClient(app)
-
-
-def create_test_user(db):
-    unique_id = str(uuid.uuid4())
-    user = models.User(
-        username=f'testuser_{unique_id}',
-        email=f'testuser_{unique_id}@example.com',
-        hashed_password='testpassword'
-    )
-    db.add(user)
-    db.commit()
-    return user
 
 
 def test_borrow_book_as_reader(db):
@@ -212,8 +200,8 @@ def test_remove_loan_as_admin(db):
     )
     db.add(loan)
     db.commit()
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.delete(f'loans/remove/{loan.id}', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
     assert response.json()['loan_id'] == loan.id

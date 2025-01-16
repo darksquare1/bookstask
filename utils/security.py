@@ -3,9 +3,12 @@ import jwt
 from fastapi.security import OAuth2PasswordBearer
 from typing import List
 from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
 from starlette import status
 from app.core.config import settings
 from passlib.context import CryptContext
+from app.db import models
+from app.db.database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = settings.SECRET_KEY
@@ -52,12 +55,18 @@ class RoleVerify:
     def __init__(self, roles: List[str]):
         self.roles = roles
 
-    def __call__(self, token: str = Depends(oauth2_scheme)):
+    def __call__(self, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
         payload = verify_token(token)
         role = payload.get('role')
         if role not in self.roles:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Access denied. Required roles: {', '.join(self.roles)}"
+            )
+        username = payload.get('sub')
+        if not db.query(models.User).filter(models.User.username == username).first():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"User {username} does not exist"
             )
         return payload

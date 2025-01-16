@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from app.db import models
 from main import app
+from tests.utils import create_test_user
 from utils.security import create_access_token
 
 client = TestClient(app)
@@ -13,8 +14,8 @@ def test_get_genres_as_reader(db):
     genre = models.Genre(name='Science Fiction')
     db.add(genre)
     db.commit()
-
-    token = create_access_token(data={'sub': 'testuser', 'role': 'reader'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'reader'})
     response = client.get('/genres', headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 401
 
@@ -24,7 +25,8 @@ def test_create_genre_as_admin(db):
     Функция тестирующая маршрут создания жанра в роли админа
     """
     genre_data = {'name': 'Mystic'}
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
 
     response = client.post('/genres', json=genre_data, headers={'Authorization': f'Bearer {token}'})
     assert response.status_code == 200
@@ -53,7 +55,8 @@ def test_update_genre_as_admin(db):
     db.commit()
 
     updated_data = {'name': 'Thriller'}
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
 
     response = client.put(f'/genres/{genre.id}', json=updated_data, headers={'Authorization': f'Bearer {token}'})
 
@@ -85,8 +88,8 @@ def test_delete_genre_as_admin(db):
     genre = models.Genre(name='Action')
     db.add(genre)
     db.commit()
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
 
     response = client.delete(f'/genres/{genre.id}', headers={'Authorization': f'Bearer {token}'})
 
@@ -116,7 +119,8 @@ def test_delete_non_existent_genre(db):
     """
     Функция тестирующая маршрут удаления несуществующего жанра в роли админа.
     """
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
 
     response = client.delete('/genres/9999', headers={'Authorization': f'Bearer {token}'})
 

@@ -33,7 +33,6 @@ def create_genre(genre: schemas.GenrePost, depends_on=Depends(RoleVerify(['admin
 
     db.add(new_genre)
     db.commit()
-    db.refresh(new_genre)
     return schemas.GenreGet(id=new_genre.id, name=new_genre.name)
 
 
@@ -47,7 +46,6 @@ def update_genre(genre_id: int, genre: schemas.GenrePost, depends_on=Depends(Rol
     existing_genre.name = genre.name
 
     db.commit()
-    db.refresh(existing_genre)
     return schemas.GenreGet(
         name=existing_genre.name,
         id=existing_genre.id

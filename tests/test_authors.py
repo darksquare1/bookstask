@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from app.db import models
 from main import app
+from tests.utils import create_test_user
 from utils.security import create_access_token
 
 client = TestClient(app)
@@ -13,8 +14,8 @@ def test_get_authors_as_reader(db):
     author = models.Author(name='J.K. Rowling', biography='Famous author', birth_date='1965-07-31')
     db.add(author)
     db.commit()
-
-    token = create_access_token(data={'sub': 'readeruser', 'role': 'reader'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'reader'})
     response = client.get('/authors', headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 200
@@ -32,8 +33,8 @@ def test_create_author_as_admin(db):
         'biography': 'Author of A Song of Ice and Fire',
         'birth_date': '1948-09-20'
     }
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.post('/authors', json=author_data, headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 200
@@ -55,7 +56,7 @@ def test_create_author_as_reader_forbidden(db):
     token = create_access_token(data={'sub': 'readeruser', 'role': 'reader'})
     response = client.post('/authors', json=author_data, headers={'Authorization': f'Bearer {token}'})
 
-    assert response.status_code == 401  # Неавторизован
+    assert response.status_code == 401
     assert response.json()['detail'] == 'Access denied. Required roles: admin'
 
 
@@ -72,8 +73,8 @@ def test_update_author_as_admin(db):
         'biography': 'Updated biography',
         'birth_date': '1965-07-31'
     }
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.put(f'/authors/{author.id}', json=updated_data, headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 200
@@ -110,8 +111,8 @@ def test_delete_author_as_admin(db):
     author = models.Author(name='J.K. Rowling', biography='Famous author', birth_date='1965-07-31')
     db.add(author)
     db.commit()
-
-    token = create_access_token(data={'sub': 'adminuser', 'role': 'admin'})
+    user = create_test_user(db)
+    token = create_access_token(data={'sub': user.username, 'role': 'admin'})
     response = client.delete(f'/authors/{author.id}', headers={'Authorization': f'Bearer {token}'})
 
     assert response.status_code == 200
