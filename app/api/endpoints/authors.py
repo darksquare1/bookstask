@@ -1,5 +1,10 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_filter import FilterDepends
 from fastapi_pagination import Page, paginate
+from fastapi_filter.contrib.sqlalchemy import Filter
+from sqlalchemy import select, or_
 from sqlalchemy.orm import Session
 from app.api import schemas
 from app.db import models
@@ -9,9 +14,25 @@ from utils.security import RoleVerify
 authors_router = APIRouter()
 
 
+class AuthorsFilter(Filter):
+    name: Optional[str] = None
+    biography: Optional[str] = None
+
+    def filter_query(self, query):
+        conditions = []
+        if self.name:
+            conditions.append(models.Author.name.ilike(f'%{self.name}%'))
+        if self.biography:
+            conditions.append(models.Author.biography.ilike(f'%{self.biography}%'))
+        if conditions:
+            query = query.filter(or_(*conditions))
+        return query
+
+
 @authors_router.get('', response_model=Page[schemas.AuthorGet])
-def get_authors(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
-    authors = db.query(models.Author).all()
+def get_authors(authors_filter: AuthorsFilter = FilterDepends(AuthorsFilter),
+                depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
+    authors = db.execute(authors_filter.filter_query(select(models.Author))).scalars().all()
     if not authors:
         raise HTTPException(status_code=404, detail='Authors not found')
 

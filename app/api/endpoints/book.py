@@ -1,5 +1,10 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_filter import FilterDepends
+from fastapi_filter.contrib.sqlalchemy import Filter
 from fastapi_pagination import Page, paginate
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 from app.api import schemas
 from app.db import models
@@ -9,9 +14,25 @@ from utils.security import RoleVerify
 books_router = APIRouter()
 
 
+class BooksFilter(Filter):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+    def filter_query(self, query):
+        conditions = []
+        if self.title:
+            conditions.append(models.Book.title.ilike(f'%{self.title}%'))
+        if self.description:
+            conditions.append(models.Book.description.ilike(f'%{self.description}%'))
+        if conditions:
+            query = query.filter(or_(*conditions))
+        return query
+
+
 @books_router.get('', response_model=Page[schemas.BookOut])
-def get_books(depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
-    books = db.query(models.Book).all()
+def get_books(books_filter: BooksFilter = FilterDepends(BooksFilter),
+              depends_on=Depends(RoleVerify(['admin', 'reader'])), db: Session = Depends(get_db)):
+    books = db.execute(books_filter.filter_query(select(models.Book))).scalars().all()
     if not books:
         raise HTTPException(status_code=404, detail='Books not found')
 
